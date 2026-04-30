@@ -1,6 +1,10 @@
+import os.path
+
 from scripts.handling_cz import CzHandlingScript
 from scripts.handling_jp import JpHandlingScript
 from scripts.handling_rprd import RprdHandlingScript
+from scripts.write_excel_file import ExcelSaver
+from scripts.filter_data import FiltretedData
 
 
 class LogicProgram:
@@ -18,6 +22,7 @@ class LogicProgram:
             self.list_keys_data_jp = list(self.data_jp.keys())
 
     def main(self):
+        save_excel = ExcelSaver('result_data.xlsx')
         for file_path in self.list_path_file:
             rprd_handling = RprdHandlingScript(file_path)
             rprd_data = rprd_handling.main()
@@ -32,20 +37,29 @@ class LogicProgram:
                     if num_row_dse in self.list_keys_data_jp:
                         for key_jp in list(self.data_jp[num_row_dse].keys()):
                             rprd_data[num_row_dse][key_jp] = self.data_jp[num_row_dse].get(key_jp, "")
-                            print(num_row_dse)
 
-            for row_num_dse, row_dse in rprd_data.items():
-                print(row_num_dse)
-                for row_num_file, row_file in row_dse.items():
-                    print("         ", row_num_file)
-                    for row_num_rc, row_rc in row_file.items():
-                        print("             ", row_num_rc, row_rc)
+
+
+            flter = FiltretedData(rprd_data)
+            main_data = flter.main()
+            sheet_n = f"{os.path.basename(file_path)}"[f"{os.path.basename(file_path)}".index("rprd00067mod")+13:][-30:]
+            sheet_n = sheet_n[sheet_n.index(" "):]
+
+            path = save_excel.save(main_data, sheet_name=sheet_n)
+            print(f" Файл сохранен: {path}")
+
+            # for row_num_dse, row_dse in main_data.items():
+            #     print(row_num_dse)
+            #     for row_num_file, row_file in row_dse.items():
+            #         print("         ",row_file)
+            print(f'Всего записей:{len(list(main_data.keys()))}')
+
+
 
 
 if __name__ == "__main__":
     app = LogicProgram(
-        [r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\rprd00067mod лтия.464641.003 антенна укв 30-80.xls",
-         r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\rprd00067mod пта.xls"],
+        [r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\rprd00067mod лтия.464641.003 антенна укв 30-80.xls"],
         path_to_file_cz=r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\ДСЕ по СЗ и Извещениям.xlsx",
         path_to_file_jp=r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\Проблемы и задачи УП и технологии.xlsx")
     app.main()

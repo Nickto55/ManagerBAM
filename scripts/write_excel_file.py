@@ -4,7 +4,7 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 import os
 
-class CodeExcelSaver:
+class ExcelSaver:
     """
     Класс для сохранения кода и входных данных в Excel файл.
     
@@ -24,7 +24,7 @@ class CodeExcelSaver:
     }
     """
     
-    def __init__(self, filename="code_data.xlsx"):
+    def __init__(self, filename="result_data.xlsx"):
         self.filename = filename
         self.workbook = None
         self.sheet = None
@@ -56,11 +56,7 @@ class CodeExcelSaver:
             for cell in column:
                 try:
                     if cell.value:
-                        # Для кода даем больше ширины
-                        if self.sheet.cell(1, cell.column).value in ['code', 'input', 'output']:
-                            max_length = max(max_length, min(len(str(cell.value)), 100))
-                        else:
-                            max_length = max(max_length, len(str(cell.value)))
+                        max_length = max(max_length, len(str(cell.value)))
                 except:
                     pass
             adjusted_width = min(max_length + 4, 80)
@@ -96,13 +92,10 @@ class CodeExcelSaver:
             self.sheet.title = sheet_name
             
         # Получаем все уникальные ключи из внутренних словарей для заголовков
-        headers = set()
-        for inner_dict in data_dict.values():
-            headers.update(inner_dict.keys())
-        headers = sorted(list(headers))
+        headers = ["Дсе","Уп","Имя изделия","Наименование","Рц","Рц из Сз","Дата из письма","Инф из письма","Подписано","№Жп","Дсе ЖП", "Дата создания", "Датат закрытия"]
         
         # Добавляем колонку с именем теста/функции
-        headers = ['name'] + headers
+        headers = headers
         
         # Записываем заголовки
         for col_idx, header in enumerate(headers, 1):
@@ -116,8 +109,9 @@ class CodeExcelSaver:
         row_idx = 2
         for name, inner_dict in data_dict.items():
             for col_idx, header in enumerate(headers, 1):
-                if header == 'name':
-                    value = name
+                if header == "Дсе":
+                    value = name[:name.index("_+_")]
+                    # value = name
                 else:
                     value = inner_dict.get(header, '')
                     
@@ -140,7 +134,7 @@ class CodeExcelSaver:
         self.sheet.freeze_panes = 'A2'
         
         # Сохраняем
-        output_path = f"/mnt/agents/output/{self.filename}"
+        output_path = f"{os.getcwd()}/{self.filename}"
         self.workbook.save(output_path)
         return output_path
     
@@ -148,7 +142,7 @@ class CodeExcelSaver:
         """
         Дописывает данные в существующий файл (если он есть).
         """
-        output_path = f"/mnt/agents/output/{self.filename}"
+        output_path = f"{os.getcwd()}/{self.filename}"
         
         if os.path.exists(output_path):
             self.workbook = openpyxl.load_workbook(output_path)
@@ -162,7 +156,7 @@ class CodeExcelSaver:
             headers = set()
             for inner_dict in data_dict.values():
                 headers.update(inner_dict.keys())
-            headers = ['name'] + sorted(list(headers))
+            headers = ["Дсе"] + sorted(list(headers))
             
             for col_idx, header in enumerate(headers, 1):
                 cell = self.sheet.cell(1, col_idx, header)
@@ -170,14 +164,12 @@ class CodeExcelSaver:
                 cell.fill = self.header_fill
                 cell.alignment = Alignment(horizontal="center", vertical="center")
                 cell.border = self.border
-        
-        # Получаем текущие заголовки
+
         current_headers = [cell.value for cell in self.sheet[1]]
-        
-        # Дописываем данные
+
         for name, inner_dict in data_dict.items():
             for col_idx, header in enumerate(current_headers, 1):
-                if header == 'name':
+                if header == "Дсе":
                     value = name
                 else:
                     value = inner_dict.get(header, '')
@@ -199,9 +191,8 @@ class CodeExcelSaver:
         return output_path
 
 
-# === ДЕМОНСТРАЦИЯ ===
+
 if __name__ == "__main__":
-    # Пример данных: словарь словарей
     test_data = {
         'fibonacci': {
             'code': 'def fib(n):\n    if n <= 1:\n        return n\n    return fib(n-1) + fib(n-2)',
@@ -227,7 +218,7 @@ if __name__ == "__main__":
     }
     
     # Создаем экземпляр и сохраняем
-    saver = CodeExcelSaver("algorithms.xlsx")
+    saver = ExcelSaver("algorithms.xlsx")
     path = saver.save(test_data, sheet_name="Algorithms")
     print(f" Файл сохранен: {path}")
     
