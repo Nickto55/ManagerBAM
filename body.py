@@ -1,50 +1,70 @@
 import customtkinter as ctk
+import threading
+import sys
 import os
 
-class ManagerBAM_GUI(ctk.CTk):
+# Импортируем твой класс из соседнего файла
+# Если главный класс называется иначе, замени ManagerBAM на свое название
+try:
+    from manager_bam import ManagerBAM 
+except ImportError:
+    print("Файл manager_bam.py не найден в текущей директории.")
+
+class AppGUI(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("ManagerBAM - Signature Tool")
-        self.geometry("400x300")
+        self.title("ManagerBAM Control Panel")
+        self.geometry("500x400")
+        ctk.set_appearance_mode("dark")
 
-        # Настройка сетки
-        self.grid_columnconfigure(0, weight=1)
+        # Настройка интерфейса
+        self.label = ctk.CTkLabel(self, text="Управление ManagerBAM", font=("Arial", 20, "bold"))
+        self.label.pack(pady=20)
+
+        self.status_text = ctk.CTkTextbox(self, width=400, height=200)
+        self.status_text.pack(pady=10)
+        self.status_text.insert("0.0", "Готов к запуску...\n")
+
+        self.start_button = ctk.CTkButton(
+            self, 
+            text="ЗАПУСТИТЬ MANAGER", 
+            fg_color="green", 
+            hover_color="darkgreen",
+            command=self.run_manager_thread
+        )
+        self.start_button.pack(pady=20)
+
+    def log(self, message):
+        """Вывод логов в текстовое поле GUI"""
+        self.status_text.insert("end", f"> {message}\n")
+        self.status_text.see("end")
+
+    def run_manager_thread(self):
+        """Запуск в отдельном потоке, чтобы GUI не зависал"""
+        self.start_button.configure(state="disabled")
+        self.log("Запуск основного класса...")
         
-        # Заголовок
-        self.label = ctk.CTkLabel(self, text="Введите данные для записи в body:", font=("Arial", 16))
-        self.label.grid(row=0, column=0, padx=20, pady=20)
+        thread = threading.Thread(target=self.execute_logic, daemon=True)
+        thread.start()
 
-        # Поле ввода
-        self.entry = ctk.CTkEntry(self, placeholder_text="Ваша подпись или текст...", width=300)
-        self.entry.grid(row=1, column=0, padx=20, pady=10)
-
-        # Кнопка записи
-        self.button = ctk.CTkButton(self, text="Записать в файл", command=self.write_to_body)
-        self.button.grid(row=2, column=0, padx=20, pady=20)
-
-        # Статус
-        self.status_label = ctk.CTkLabel(self, text="", text_color="gray")
-        self.status_label.grid(row=3, column=0, padx=20, pady=10)
-
-    def write_to_body(self):
-        content = self.entry.get()
-        if not content:
-            self.status_label.configure(text="Ошибка: Поле пустое!", text_color="red")
-            return
-
+    def execute_logic(self):
         try:
-            # Путь к файлу body в корне проекта
-            file_path = "body"
+            # Создаем экземпляр твоего класса
+            # Если конструктор требует аргументы, передай их здесь
+            manager = ManagerBAM()
             
-            with open(file_path, "a", encoding="utf-8") as f:
-                f.write(content + "\n")
+            # Вызываем главный метод (например, run() или start())
+            # Замени .run(), если метод называется по-другому
+            if hasattr(manager, 'run'):
+                manager.run()
             
-            self.status_label.configure(text="Успешно записано в body", text_color="green")
-            self.entry.delete(0, 'end') # Очистить поле после записи
+            self.log("Процесс успешно завершен.")
         except Exception as e:
-            self.status_label.configure(text=f"Ошибка: {e}", text_color="red")
+            self.log(f"ОШИБКА: {str(e)}")
+        finally:
+            self.start_button.configure(state="normal")
 
 if __name__ == "__main__":
-    app = ManagerBAM_GUI()
+    app = AppGUI()
     app.mainloop()
