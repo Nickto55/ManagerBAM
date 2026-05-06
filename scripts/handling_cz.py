@@ -1,5 +1,7 @@
 import os.path
 
+import pandas as pd
+
 from scripts.read_excel_file import ReadExcelFile
 
 class CzHandlingScript:
@@ -28,6 +30,9 @@ class CzHandlingScript:
             coment = row.get('Комментарии', '')
             if ","in str(rc[0]):
                 rc= rc[0].replace(' ','').split(",")
+            if pd.isna(coment): coment = ''
+            if pd.isna(info_from_latter): info_from_latter = ''
+            if pd.isna(signed): signed = ''
             for rc_cell in rc:
                 rc_data = {
                     'rc': rc_cell,

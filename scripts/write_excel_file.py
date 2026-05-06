@@ -76,6 +76,8 @@ class ExcelSaver:
                         max_length = max(max_length, len(str(cell.value)))
                 except:
                     pass
+                if column_letter in ['E','F']: max_length=2
+                if column_letter in ['B','G','I',]: max_length=7
             adjusted_width = min(max_length + 4, 80)
             self.sheet.column_dimensions[column_letter].width = adjusted_width
             
@@ -85,9 +87,11 @@ class ExcelSaver:
             max_lines = 1
             for cell in row:
                 if cell.value and isinstance(cell.value, str):
-                    lines = cell.value.count('\n') + 1
-                    max_lines = max(max_lines, lines)
+                        lines = cell.value.count('\n') + 1
+                        max_lines = max(max_lines, lines)
+
             self.sheet.row_dimensions[row[0].row].height = max(30, max_lines * 15)
+
     
     def save(self, data_dict, sheet_name=None):
         """
@@ -109,7 +113,7 @@ class ExcelSaver:
             self.sheet.title = sheet_name
             
         # Получаем все уникальные ключи из внутренних словарей для заголовков
-        headers = ["Дсе","Уп","Имя изделия","Наименование","Рц","Рц из Сз","Дата из письма","Инф из письма","Подписано","Комментарии","№Жп","Дсе ЖП", "Дата создания",'Комментарий', "Датат закрытия"]
+        headers = ["Дсе","Уп","Имя изделия","Наименование","Рц","Рц из Сз","Дата из письма","Инф из письма","Подписано","Комментарии","№Жп","Дсе ЖП", "Дата создания",'Комментарий']
         
         # Добавляем колонку с именем теста/функции
         headers = headers
@@ -143,7 +147,7 @@ class ExcelSaver:
                         cell.alignment = self.wrap_alignment
 
                         if name_idxs % 2 != 0:
-                            cell.fill = PatternFill(start_color="c0cbcc", end_color="c0cbcc", fill_type="solid")
+                            cell.fill = PatternFill(start_color="f2f2f2", end_color="f2f2f2", fill_type="solid")
                         # if header in ['Дсе', 'input', 'output', 'expected']:
 
                             # cell.font = self.code_font
@@ -170,32 +174,3 @@ class ExcelSaver:
 
 
 
-if __name__ == "__main__":
-    test_data = {
-        'fibonacci': {
-            'code': 'def fib(n):\n    if n <= 1:\n        return n\n    return fib(n-1) + fib(n-2)',
-            'input': 'fib(10)',
-            'output': '55',
-            'complexity': 'O(2^n)',
-            'tags': 'recursion, math'
-        },
-        'bubble_sort': {
-            'code': 'def bubble_sort(arr):\n    n = len(arr)\n    for i in range(n):\n        for j in range(0, n-i-1):\n            if arr[j] > arr[j+1]:\n                arr[j], arr[j+1] = arr[j+1], arr[j]\n    return arr',
-            'input': '[64, 34, 25, 12, 22, 11, 90]',
-            'output': '[11, 12, 22, 25, 34, 64, 90]',
-            'complexity': 'O(n²)',
-            'tags': 'sorting, beginner'
-        },
-        'quick_sort': {
-            'code': 'def quick_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[len(arr)//2]\n    left = [x for x in arr if x < pivot]\n    middle = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quick_sort(left) + middle + quick_sort(right)',
-            'input': '[3, 6, 8, 10, 1, 2, 1]',
-            'output': '[1, 1, 2, 3, 6, 8, 10]',
-            'complexity': 'O(n log n)',
-            'tags': 'sorting, divide-and-conquer'
-        }
-    }
-    
-    # Создаем экземпляр и сохраняем
-    saver = ExcelSaver("algorithms.xlsx")
-    path = saver.save(test_data, sheet_name="Algorithms")
-    print(f" Файл сохранен: {path}")

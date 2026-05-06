@@ -76,13 +76,12 @@ class RprdHandlingScript:
             yup = l_data.get('Unnamed: 6', '')
             if yup is None or yup == 'nan' or pd.isna(yup):
                 yup = ''
-            file_name = self.name_file
             rc_data = {
                 'rc': rc,
                 'dse': dse,
                 'name dse': name_dse,
                 'yup': yup,
-                'file name': file_name
+                'file name': self.name_file
             }
 
             if not dse in list(dse_data_2012.keys()): dse_data_2012[dse] = {"data_2012": {}}
@@ -114,7 +113,7 @@ class RprdHandlingScript:
         list_keys_first_line = list(first_line.keys())
 
         try:
-            self.name_file = os.path.basename(self.file_path).replace("rprd00067mod ", "")
+            self.name_file = os.path.basename(self.file_path).replace("rprd00067mod ", "").replace('.xls','')
         except:
             self.name_file = os.path.basename(self.file_path)
 

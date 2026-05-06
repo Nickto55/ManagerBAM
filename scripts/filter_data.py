@@ -17,8 +17,10 @@ class FiltretedData:
                     if type_file == 'data_2012':
                         rc['Уп']=row.get('yup','')
                         rc['Наименование']=row.get('name dse','')
-                        nemend_file =  row.get('file name','')[-30:]
-                        nemend_file=nemend_file[nemend_file.index(" ")+1:]
+                        nemend_file = row.get('file name', '')
+                        if len(nemend_file)>30:
+                            nemend_file=nemend_file[-30:]
+                            nemend_file=nemend_file[nemend_file.index(" ")+1:]
                         rc['Имя изделия']=nemend_file
                         rc['Рц']=row.get('rc','')
                     if type_file == 'data_cz':
@@ -32,7 +34,7 @@ class FiltretedData:
                         rc['Дсе ЖП'] = row.get('dse','')
                         rc['Дата создания'] = row.get('data create','')
                         rc['Комментарий'] = row.get('coment','')
-                        rc['data close'] = row.get('Датат закрытия','')
+                        rc['Дата закрытия'] = row.get('data close','')
                     val_row[rc_pos]=rc
 
                 self.data_return[f"{dse}_+_{rc_pos}_+_{type_file}"] = val_row

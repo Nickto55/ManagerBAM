@@ -1,5 +1,7 @@
 import os.path
 
+import pandas as pd
+
 from scripts.read_excel_file import ReadExcelFile
 
 class JpHandlingScript:
@@ -25,6 +27,7 @@ class JpHandlingScript:
             data_create =row.get('Проблемы и задачи УП и технологии', '')
             data_close =row.get('Unnamed: 23', '')
             coment =row.get('Unnamed: 19','')
+            if not pd.isna(data_close): continue
 
             rc_data = {
                 'numpe jp': numpe_jp,
