@@ -1,4 +1,5 @@
 import os.path
+
 import pandas as pd
 
 from scripts.read_excel_file import ReadExcelFile
@@ -54,11 +55,14 @@ class RprdHandlingScript:
 
         if self.detection_version_file(self.file_path) == 'version complete':
             self.read_complite_tabel()
-            self.sorting_completed_data()
+            self.sorting_data_2012()
+        if self.detection_version_file(self.file_path) == 'version half':
+            self.read_half_tabel()
+            self.sorting_data_2012()
 
         return self.sorted_data
 
-    def sorting_completed_data(self):
+    def sorting_data_2012(self):
         """
         Сортрирует данные получанные из полной версии файла
         """
@@ -70,8 +74,9 @@ class RprdHandlingScript:
             dse = l_data.get('Unnamed: 3', '')
             name_dse = l_data.get(' Отчет по наличию программ для станков с ЧПУ', '')
             yup = l_data.get('Unnamed: 6', '')
+            if yup is None or yup == 'nan' or pd.isna(yup):
+                yup = ''
             file_name = self.name_file
-
             rc_data = {
                 'rc': rc,
                 'dse': dse,
@@ -81,6 +86,11 @@ class RprdHandlingScript:
             }
 
             if not dse in list(dse_data_2012.keys()): dse_data_2012[dse] = {"data_2012": {}}
+            if rc in list(dse_data_2012[dse]["data_2012"].keys()):
+                if yup != ' ' and not pd.isna(yup):
+                    rc_data['yup'] = f"{dse_data_2012[dse]["data_2012"][rc].get('yup', '')}, {rc_data['yup']}"
+                else:
+                    rc_data['yup'] = f"{dse_data_2012[dse]["data_2012"][rc].get('yup', '')}"
             dse_data_2012[dse]["data_2012"][rc] = rc_data
 
         self.sorted_data = dse_data_2012.copy()
@@ -95,6 +105,28 @@ class RprdHandlingScript:
             if not pd.isna(now_line.get('Unnamed: 2')) and not pd.isna(now_line.get('Unnamed: 3')):
                 self.data[len(self.data.keys())] = now_line
 
+    def read_half_tabel(self):
+        """
+        читет файл не полной версии
+        :return:
+        """
+        first_line = self.data_for_read.get(0, "")
+        list_keys_first_line = list(first_line.keys())
+
+        try:
+            self.name_file = os.path.basename(self.file_path).replace("rprd00067mod ", "")
+        except:
+            self.name_file = os.path.basename(self.file_path)
+
+        for row_num, row in self.data_for_read.items():
+            row_return = {
+                'Unnamed: 1': row.get(list_keys_first_line[1], ''),
+                'Unnamed: 3': row.get(list_keys_first_line[3], ''),
+                ' Отчет по наличию программ для станков с ЧПУ': row.get(list_keys_first_line[4], ''),
+                'Unnamed: 6': row.get(list_keys_first_line[5], '')
+            }
+            self.data[len(self.data.keys())] = row_return
+
     def detection_version_file(self, file_path):
         """
         Определяет к какой версии относится файл.
@@ -105,12 +137,13 @@ class RprdHandlingScript:
         if str(list_keys_first_line) == "['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', ' Отчет по наличию программ для станков с ЧПУ', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', '2012', 'Unnamed: 10']":
             print(f"version complete | {os.path.basename(file_path)}")
             return 'version complete'
-        else:
+        if int(list_keys_first_line[0]) == 1:
             print(f"version half     | {os.path.basename(file_path)}")
             return 'version half'
+        return None
 
 
 if __name__ == "__main__":
-    app = RprdHandlingScript(
-        r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\rprd00067mod лтия.464641.003 антенна укв 30-80.xls")
+    # app = RprdHandlingScript(r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\rprd00067mod лтия.464641.003 антенна укв 30-80.xls")
+    app = RprdHandlingScript(r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\rprd00067mod пта 2.xls")
     app.main()

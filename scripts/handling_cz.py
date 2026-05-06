@@ -25,6 +25,7 @@ class CzHandlingScript:
             date_latter = row.get('Дата пиьсма', '')
             info_from_latter =row.get('Инф из письма', '')
             signed = row.get('Подписано', '')
+            coment = row.get('Комментарии', '')
             if ","in str(rc[0]):
                 rc= rc[0].replace(' ','').split(",")
             for rc_cell in rc:
@@ -32,7 +33,8 @@ class CzHandlingScript:
                     'rc': rc_cell,
                     'date latter': str(date_latter)[:10],
                     'info from latter': info_from_latter,
-                    'signed': str(signed)
+                    'signed': str(signed),
+                    'coment': str(coment)
                 }
                 if not dse in list(dse_data_cz.keys()): dse_data_cz[dse] = {"data_cz": {}}
                 dse_data_cz[dse]["data_cz"][rc_cell] = rc_data

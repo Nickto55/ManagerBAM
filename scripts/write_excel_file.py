@@ -3,6 +3,7 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 import os
+import pandas as pd
 
 class ExcelSaver:
     """
@@ -14,7 +15,7 @@ class ExcelSaver:
             'code': 'def hello():\n    return "world"',
             'input': 'hello()',
             'expected': '"world"',
-            'notes': 'простой пример'
+            'notes': ''
         },
         'test_name_2': {
             'code': '...',
@@ -41,13 +42,29 @@ class ExcelSaver:
             bottom=Side(style='thin', color='D0D0D0')
         )
         self.wrap_alignment = Alignment(wrap_text=True, vertical="top")
-        
-    def _create_workbook(self):
-        """Создает новую книгу Excel."""
-        self.workbook = openpyxl.Workbook()
-        self.sheet = self.workbook.active
-        self.sheet.title = "Code & Data"
-        
+
+    def _create_workbook(self, sheet_name=None):
+        """Загружает существующий файл или создает новую книгу Excel."""
+        output_path = os.path.join(os.getcwd(), self.filename)
+
+        if os.path.exists(output_path):
+            self.workbook = openpyxl.load_workbook(output_path)
+        else:
+            self.workbook = openpyxl.Workbook()
+            if "Sheet" in self.workbook.sheetnames:
+                self.workbook.remove(self.workbook["Sheet"])
+
+        # 🔧 Создаём или получаем нужный лист
+        if sheet_name and sheet_name in self.workbook.sheetnames:
+            self.sheet = self.workbook[sheet_name]
+            # Опционально: очистить старый лист
+            self.sheet.delete_rows(1, self.sheet.max_row)
+        elif sheet_name:
+            self.sheet = self.workbook.create_sheet(sheet_name)
+        else:
+            self.sheet = self.workbook.active
+            self.sheet.title = "Что-то пошло не так"
+
     def _auto_resize_columns(self):
         """Автоматически подбирает ширину столбцов."""
         for column in self.sheet.columns:
@@ -86,13 +103,13 @@ class ExcelSaver:
         if not data_dict:
             raise ValueError("Передан пустой словарь данных")
             
-        self._create_workbook()
+        self._create_workbook(sheet_name)
         
         if sheet_name:
             self.sheet.title = sheet_name
             
         # Получаем все уникальные ключи из внутренних словарей для заголовков
-        headers = ["Дсе","Уп","Имя изделия","Наименование","Рц","Рц из Сз","Дата из письма","Инф из письма","Подписано","№Жп","Дсе ЖП", "Дата создания", "Датат закрытия"]
+        headers = ["Дсе","Уп","Имя изделия","Наименование","Рц","Рц из Сз","Дата из письма","Инф из письма","Подписано","Комментарии","№Жп","Дсе ЖП", "Дата создания",'Комментарий', "Датат закрытия"]
         
         # Добавляем колонку с именем теста/функции
         headers = headers
@@ -107,24 +124,36 @@ class ExcelSaver:
             
         # Записываем данные
         row_idx = 2
+        name_idxs = 0
+        last_name = "Дсе_+_"
         for name, inner_dict in data_dict.items():
-            for col_idx, header in enumerate(headers, 1):
-                if header == "Дсе":
-                    value = name[:name.index("_+_")]
-                    # value = name
-                else:
-                    value = inner_dict.get(header, '')
-                    
-                cell = self.sheet.cell(row_idx, col_idx, value)
-                cell.border = self.border
-                cell.alignment = self.wrap_alignment
-                
-                # Применяем моноширинный шрифт для кода
-                if header in ['code', 'input', 'output', 'expected']:
-                    cell.font = self.code_font
-                    cell.fill = self.code_fill
-                    
-            row_idx += 1
+            if last_name[:last_name.index("_+_")] != name[:name.index("_+_")]:
+                name_idxs+=1
+            for rc_s, row_from_rc in inner_dict.items():
+                for col_idx, header in enumerate(headers, 1):
+                    if header == "Дсе":
+                        value = name[:name.index("_+_")]
+                    else:
+                        if isinstance(row_from_rc, str): continue
+                        value = row_from_rc.get(header, '')
+
+                    if not isinstance(row_from_rc, str):
+                        cell = self.sheet.cell(row_idx, col_idx, f"{value}")
+                        cell.border = self.border
+                        cell.alignment = self.wrap_alignment
+
+                        if name_idxs % 2 != 0:
+                            cell.fill = PatternFill(start_color="c0cbcc", end_color="c0cbcc", fill_type="solid")
+                        # if header in ['Дсе', 'input', 'output', 'expected']:
+
+                            # cell.font = self.code_font
+                            # cell.fill = self.code_fill
+                            # cell.border = self.border
+
+                if not isinstance(row_from_rc, str):
+                    row_idx += 1
+            last_name = name
+
             
         # Авторазмер колонок и строк
         self._auto_resize_columns()
@@ -137,58 +166,7 @@ class ExcelSaver:
         output_path = f"{os.getcwd()}/{self.filename}"
         self.workbook.save(output_path)
         return output_path
-    
-    def append(self, data_dict):
-        """
-        Дописывает данные в существующий файл (если он есть).
-        """
-        output_path = f"{os.getcwd()}/{self.filename}"
-        
-        if os.path.exists(output_path):
-            self.workbook = openpyxl.load_workbook(output_path)
-            self.sheet = self.workbook.active
-            start_row = self.sheet.max_row + 1
-        else:
-            self._create_workbook()
-            start_row = 2
-            
-            # Заголовки
-            headers = set()
-            for inner_dict in data_dict.values():
-                headers.update(inner_dict.keys())
-            headers = ["Дсе"] + sorted(list(headers))
-            
-            for col_idx, header in enumerate(headers, 1):
-                cell = self.sheet.cell(1, col_idx, header)
-                cell.font = self.header_font
-                cell.fill = self.header_fill
-                cell.alignment = Alignment(horizontal="center", vertical="center")
-                cell.border = self.border
 
-        current_headers = [cell.value for cell in self.sheet[1]]
-
-        for name, inner_dict in data_dict.items():
-            for col_idx, header in enumerate(current_headers, 1):
-                if header == "Дсе":
-                    value = name
-                else:
-                    value = inner_dict.get(header, '')
-                    
-                cell = self.sheet.cell(start_row, col_idx, value)
-                cell.border = self.border
-                cell.alignment = self.wrap_alignment
-                
-                if header in ['code', 'input', 'output', 'expected']:
-                    cell.font = self.code_font
-                    cell.fill = self.code_fill
-                    
-            start_row += 1
-            
-        self._auto_resize_columns()
-        self._auto_resize_rows()
-        
-        self.workbook.save(output_path)
-        return output_path
 
 
 
@@ -221,21 +199,3 @@ if __name__ == "__main__":
     saver = ExcelSaver("algorithms.xlsx")
     path = saver.save(test_data, sheet_name="Algorithms")
     print(f" Файл сохранен: {path}")
-    
-    # Демонстрация append
-    new_data = {
-        'merge_sort': {
-            'code': 'def merge_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    mid = len(arr)//2\n    left = merge_sort(arr[:mid])\n    right = merge_sort(arr[mid:])\n    return merge(left, right)',
-            'input': '[38, 27, 43, 3, 9, 82, 10]',
-            'output': '[3, 9, 10, 27, 38, 43, 82]',
-            'complexity': 'O(n log n)',
-            'tags': 'sorting, stable'
-        }
-    }
-    
-    path = saver.append(new_data)
-    print(f" Данные дописаны в: {path}")
-    print(" Структура файла:")
-    print(f"   - Лист: {saver.sheet.title}")
-    print(f"   - Строк данных: {saver.sheet.max_row - 1}")
-    print(f"   - Колонок: {saver.sheet.max_column}")

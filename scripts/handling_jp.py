@@ -24,11 +24,13 @@ class JpHandlingScript:
             dse =str(row.get('Unnamed: 3', ''))
             data_create =row.get('Проблемы и задачи УП и технологии', '')
             data_close =row.get('Unnamed: 23', '')
+            coment =row.get('Unnamed: 19','')
 
             rc_data = {
                 'numpe jp': numpe_jp,
                 'dse': dse,
                 'data create': data_create,
+                'coment':coment,
                 'data close': data_close
             }
             if not dse in list(dse_data_jp.keys()): dse_data_jp[dse] = {"data_jp": {}}
@@ -39,9 +41,10 @@ class JpHandlingScript:
 
 if __name__=="__main__":
     app =  JpHandlingScript(r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\Проблемы и задачи УП и технологии.xlsx")
-    for row_m, row in app.main().items():
-        print(row_m)
-        for row_n, roerw in row.items():
-            print(f"          {row_n}")
-            for ropi, iweorp in roerw.items():
-                print(f"                  {ropi}|{iweorp}")
+    app.main()
+    # for row_m, row in app.main().items():
+    #     print(row_m)
+    #     for row_n, roerw in row.items():
+    #         print(f"          {row_n}")
+    #         for ropi, iweorp in roerw.items():
+    #             print(f"                  {ropi}|{iweorp}")
