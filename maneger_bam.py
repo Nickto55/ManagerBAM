@@ -5,6 +5,7 @@ from scripts.handling_jp import JpHandlingScript
 from scripts.handling_rprd import RprdHandlingScript
 from scripts.write_excel_file import ExcelSaver
 from scripts.filter_data import FiltretedData
+from CTkMessagebox import CTkMessagebox
 
 
 class LogicProgram:
@@ -36,6 +37,7 @@ class LogicProgram:
             rprd_handling = RprdHandlingScript(file_path)
             rprd_data = rprd_handling.main()
 
+
             if not self.path_to_file_cz is None and not self.path_to_file_cz == "":
                 for num_row_dse, row in rprd_data.items():
                     if num_row_dse in self.list_keys_data_cz:
@@ -59,11 +61,6 @@ class LogicProgram:
 
             path = save_excel.save(main_data, sheet_name=sheet_n)
             print(f" Файл сохранен: {path}")
-
-            # for row_num_dse, row_dse in main_data.items():
-            #     print(row_num_dse)
-            #     for row_num_file, row_file in row_dse.items():
-            #         print("         ",row_file)
             print(f'Всего записей:{len(list(main_data.keys()))}')
 
 
@@ -73,7 +70,8 @@ if __name__ == "__main__":
     app = LogicProgram(
         [r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\rprd00067mod лтия.464641.003 антенна укв 30-80.xls",r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\rprd00067mod пта 2.xls"],
         path_to_file_cz=r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\ДСЕ по СЗ и Извещениям.xlsx",
-        path_to_file_jp=r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\Проблемы и задачи УП и технологии.xlsx")
+        path_to_file_jp=r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\Проблемы и задачи УП и технологии.xlsx"
+    )
     app.main()
     # app = LogicProgram([r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\rprd00067mod пта.xls"])
     # app.main()

@@ -28,6 +28,9 @@ class JpHandlingScript:
             data_close =row.get('Unnamed: 23', '')
             coment =row.get('Unnamed: 19','')
             if not pd.isna(data_close): continue
+            if pd.isna(numpe_jp): numpe_jp=''
+            if pd.isna(data_create): data_create=''
+            if pd.isna(coment): coment=''
 
             rc_data = {
                 'numpe jp': numpe_jp,

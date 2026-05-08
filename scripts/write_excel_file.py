@@ -6,24 +6,7 @@ import os
 import pandas as pd
 
 class ExcelSaver:
-    """
-    Класс для сохранения кода и входных данных в Excel файл.
-    
-    Входные данные: словарь словарей вида:
-    {
-        'test_name_1': {
-            'code': 'def hello():\n    return "world"',
-            'input': 'hello()',
-            'expected': '"world"',
-            'notes': ''
-        },
-        'test_name_2': {
-            'code': '...',
-            'input': '...',
-            ...
-        }
-    }
-    """
+
     
     def __init__(self, filename="result_data.xlsx"):
         self.filename = filename
@@ -94,16 +77,6 @@ class ExcelSaver:
 
     
     def save(self, data_dict, sheet_name=None):
-        """
-        Сохраняет данные в Excel файл.
-        
-        Args:
-            data_dict: словарь словарей с данными
-            sheet_name: имя листа (опционально)
-        
-        Returns:
-            str: путь к сохраненному файлу
-        """
         if not data_dict:
             raise ValueError("Передан пустой словарь данных")
             

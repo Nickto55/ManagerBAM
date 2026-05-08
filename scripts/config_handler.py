@@ -1,0 +1,63 @@
+from CTkMessagebox import CTkMessagebox
+
+from scripts.config import HandlerConfig
+
+
+class ConfigMainProgram:
+    def __init__(self):
+        self.data_base = HandlerConfig()
+
+    def get_all_config_program(self):
+        self.data_base.load()
+        return self.data_base.data.get('program', '')
+
+    def get_size_config(self):
+        self.data_base.load()
+        return self.data_base.data['program'].get('size', '')
+
+    def set_size_config(self, key_name_file, path_to_file):
+        data = self.data_base.data['program'].get('size', '')
+        if key_name_file in data.keys():
+            self.data_base.data['program']["size"][key_name_file] = path_to_file
+            self.data_base.save()
+            self.data_base.load()
+            print(f"Размер для '{key_name_file}' сохранен в 'program/size': {path_to_file}")
+        else:
+            print(
+                f"Данного ключа('{key_name_file}') нет в словаре 'size', возможные варианты {list(data.keys())}")
+            CTkMessagebox(title="Не критическая ошибка",
+                          message=f"Ошибка при записи размера\nКлюча ('{key_name_file}') нет в словаре 'size'\nПуть к файлу не сохранен",
+                          icon="warning", option_1="Не сохранять путь")
+
+
+class ConfigHistoryFile:
+    def __init__(self):
+        self.data_base = HandlerConfig()
+
+    def get_cz_hist(self):
+        self.data_base.load()
+        return self.data_base.data['history file'].get('cz', '')
+
+    def get_jp_hist(self):
+        self.data_base.load()
+        return self.data_base.data['history file'].get('jp', '')
+
+    def set_history(self, key_name_file, path_to_file):
+        data = self.data_base.data.get('history file', '')
+        if key_name_file in data.keys():
+            self.data_base.data['history file'][key_name_file] = path_to_file
+            self.data_base.save()
+            self.data_base.load()
+            print(f"Путь для '{key_name_file}' сохранен в 'history file': {path_to_file}")
+        else:
+            print(
+                f"Данного ключа({key_name_file}) нет в словаре 'history file', возможные варианты {list(data.keys())}")
+            CTkMessagebox(title="Не критическая ошибка",
+                          message=f"Ошибка при записи истории\nКлюча ('{key_name_file}') нет в словаре 'history file'\nПуть к файлу не сохранен",
+                          icon="warning", option_1="Не сохранять путь")
+
+
+if __name__ == "__main__":
+    app = ConfigMainProgram()
+    app.get_size_config()
+    # app12.mainloop()
