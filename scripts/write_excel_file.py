@@ -59,8 +59,10 @@ class ExcelSaver:
                         max_length = max(max_length, len(str(cell.value)))
                 except:
                     pass
-                if column_letter in ['E','F']: max_length=2
-                if column_letter in ['B','G','I',]: max_length=7
+                if column_letter in ['E','C','K']: max_length=2
+                if column_letter in ['I']: max_length=7
+                if column_letter in ['F','G']: max_length=14
+                if column_letter in ['B','G']: max_length=11
             adjusted_width = min(max_length + 4, 80)
             self.sheet.column_dimensions[column_letter].width = adjusted_width
             
@@ -86,8 +88,9 @@ class ExcelSaver:
             self.sheet.title = sheet_name
             
         # Получаем все уникальные ключи из внутренних словарей для заголовков
-        headers = ["Дсе","Уп","Имя изделия","Наименование","Рц","Рц из Сз","Дата из письма","Инф из письма","Подписано","Комментарии","№Жп","Дсе ЖП", "Дата создания",'Комментарий']
-        
+        # headers = ["Дсе","Уп","Имя изделия","Наименование","Рц","Рц из Сз","Дата из письма","Инф из письма","Подписано","Комментарии","№Жп","Дсе ЖП", "Дата создания",'Комментарий']
+        headers = ["Дсе","Наименование","РЦ (2012)","Имя изделия","УП","Дата из письма","Инф из письма","Подписано","РЦ (СЗ)","Комментарии","№ЖП", "Дата создания",'Комментарий']
+
         # Добавляем колонку с именем теста/функции
         headers = headers
         

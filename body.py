@@ -1,11 +1,11 @@
 import threading
-from tkinter import filedialog, END
+from tkinter import filedialog, END, BooleanVar
 
 import customtkinter as ctk
 import pandas as pd
 
 from maneger_bam import LogicProgram as LogicManage_programm
-from scripts.config_handler import ConfigMainProgram,ConfigHistoryFile
+from scripts.config_handler import ConfigMainProgram, ConfigHistoryFile
 
 
 class AppGUI(ctk.CTk):
@@ -15,21 +15,37 @@ class AppGUI(ctk.CTk):
         self.main_config_program = ConfigMainProgram()
         self.config_size = self.main_config_program.get_size_config()
 
+        self.window_size_x = int(self.config_size.get('x', ''))
+        self.window_size_y = int(self.config_size.get('y', ''))
+
         self.title("Bam Manager")
-        self.geometry(f"{self.config_size.get('x','')}x{self.config_size.get('y','')}")
+        self.geometry(f"{self.window_size_x}x{self.window_size_y}")
         try:
             self.iconbitmap(r"static/ico/bam_manager.ico")
         except:
             pass
         # self.iconwindow(r"static/ico/bam_manager.ico")
         self.config_history = ConfigHistoryFile()
+
+        self.var_view_yup = BooleanVar(value=self.main_config_program.get_all_config_program().get("view yup"))
+
+        self.size_window()
         self.gui()
 
+    def size_window(self):
+        self.main_frame_pad_x = 15
+        # self.main_frame_pad_y = 15
+
     def gui(self):
-        ctk.set_appearance_mode(self.main_config_program.get_all_config_program().get('theme',''))
+        ctk.set_appearance_mode(self.main_config_program.get_all_config_program().get('theme', ''))
         # ctk.set_appearance_mode('light')
 
-        main_frame = ctk.CTkFrame(self, width=int(self.config_size.get('x',''))-30, height=145, fg_color="#3f3f3f")
+        main_frame = ctk.CTkFrame(
+            self,
+            width=self.window_size_x - self.main_frame_pad_x * 2,
+            height=145,
+            fg_color="#3f3f3f"
+        )
 
         self.label_path_2012 = ctk.CTkEntry(
             main_frame,
@@ -51,9 +67,24 @@ class AppGUI(ctk.CTk):
             text='Открыть',
             width=30,
             height=30,
+            fg_color="#4a4a4a",
+            hover_color="#242424",
             command=lambda: self.button_path_commands("path_2012")
         )
         self.batton_path_2012.place(x=465, y=5)
+
+        self.switch_up = ctk.CTkSwitch(
+            main_frame,
+            text="Отображение УП",
+            height=30,
+            variable=self.var_view_yup,
+            button_color=("green", "#565b5e"),
+            progress_color=("#4a4a4a", "#242424"),
+            button_hover_color=("#ffffff", "#242424"),
+            command=lambda : print("8908")
+        )
+        print(self.var_view_yup.get())
+        self.switch_up.place(x=550, y=5)
 
         label_sun.place(x=456, y=0)
         self.label_path_cz = ctk.CTkEntry(
@@ -69,10 +100,11 @@ class AppGUI(ctk.CTk):
             text='Открыть',
             width=30,
             height=30,
+            fg_color="#4a4a4a",
+            hover_color="#242424",
             command=lambda: self.button_path_commands("path_cz")
         )
         self.batton_path_cz.place(x=465, y=40)
-
 
         self.label_path_jp = ctk.CTkEntry(
             main_frame,
@@ -87,6 +119,8 @@ class AppGUI(ctk.CTk):
             text='Открыть',
             width=30,
             height=30,
+            fg_color="#4a4a4a",
+            hover_color="#242424",
             command=lambda: self.button_path_commands("path_jp")
         )
         self.batton_path_jp.place(x=465, y=75)
@@ -98,20 +132,21 @@ class AppGUI(ctk.CTk):
             hover_color="darkgreen",
             command=self.run_manager_thread
         )
-        self.start_button.place(x=670 - 140 - 5, y=110)
+        self.start_button.place(x=self.window_size_x - self.main_frame_pad_x * 2 - 140 - 5, y=110)
 
         main_frame.place(x=15, y=15)
 
-        self.status_text = ctk.CTkTextbox(self, width=670, height=211, fg_color="#131414")
+        self.status_text = ctk.CTkTextbox(self, width=self.window_size_x - self.main_frame_pad_x * 2, height=211,
+                                          fg_color="#131414")
         self.status_text.place(x=15, y=174)
 
         if self.config_history.get_cz_hist() != "":
-            self.label_path_cz.delete(0,END)
+            self.label_path_cz.delete(0, END)
             self.label_path_cz.insert(0, self.config_history.get_cz_hist())
         else:
             self.log("--нет сохраненного пути к cz")
         if self.config_history.get_jp_hist() != "":
-            self.label_path_jp.delete(0,END)
+            self.label_path_jp.delete(0, END)
             self.label_path_jp.insert(0, self.config_history.get_jp_hist())
         else:
             self.log("--нет сохраненного пути к jp")
@@ -175,9 +210,8 @@ class AppGUI(ctk.CTk):
 
     def execute_logic(self):
         try:
-            self.config_history.set_history("cz",self.label_path_cz.get())
-            self.config_history.set_history("jp",self.label_path_jp.get())
-
+            self.config_history.set_history("cz", self.label_path_cz.get())
+            self.config_history.set_history("jp", self.label_path_jp.get())
 
             manager = LogicManage_programm(
                 list_path_to_file_rprd=self.label_path_2012.get().replace(", ", ",").split(","),

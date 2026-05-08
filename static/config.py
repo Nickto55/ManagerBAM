@@ -2,10 +2,11 @@ configProgram = {
     'program':{
         'name':'Bam Manager Work',
         'size':{
-            'x':'700',
+            'x':'750',
             'y':'400'
         },
-        'theme':'system'
+        'theme':'system',
+        'view yup':True
     },
     'history file':{
         'cz':'',

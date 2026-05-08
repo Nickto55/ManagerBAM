@@ -21,13 +21,14 @@ class JpHandlingScript:
     def sorting_completed_data(self):
         dse_data_jp = {}
 
+
         for row_n, row in self.data_for_read.items():
             numpe_jp = row.get('Unnamed: 0', '')
             dse =str(row.get('Unnamed: 3', ''))
             data_create =row.get('Проблемы и задачи УП и технологии', '')
             data_close =row.get('Unnamed: 23', '')
             coment =row.get('Unnamed: 19','')
-            if not pd.isna(data_close): continue
+            if not pd.isna(data_close) or not pd.isna("Unnamed: 24"): continue
             if pd.isna(numpe_jp): numpe_jp=''
             if pd.isna(data_create): data_create=''
             if pd.isna(coment): coment=''
@@ -48,9 +49,9 @@ class JpHandlingScript:
 if __name__=="__main__":
     app =  JpHandlingScript(r"C:\Users\yakovlev_nd\Desktop\Test\БАМ менеджер\Проблемы и задачи УП и технологии.xlsx")
     app.main()
-    # for row_m, row in app.main().items():
-    #     print(row_m)
-    #     for row_n, roerw in row.items():
-    #         print(f"          {row_n}")
-    #         for ropi, iweorp in roerw.items():
-    #             print(f"                  {ropi}|{iweorp}")
+    for row_m, row in app.main().items():
+        print(row_m)
+        for row_n, roerw in row.items():
+            print(f"          {row_n}")
+            for ropi, iweorp in roerw.items():
+                print(f"                  {ropi}|{iweorp}")
