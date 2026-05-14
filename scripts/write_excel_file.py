@@ -1,18 +1,17 @@
+import os
 
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
-import os
-import pandas as pd
+
 
 class ExcelSaver:
 
-    
     def __init__(self, filename="result_data.xlsx"):
         self.filename = filename
         self.workbook = None
         self.sheet = None
-        
+
         # Стили
         self.header_font = Font(bold=True, color="FFFFFF", size=11)
         self.header_fill = PatternFill(start_color="2C3E50", end_color="2C3E50", fill_type="solid")
@@ -59,41 +58,41 @@ class ExcelSaver:
                         max_length = max(max_length, len(str(cell.value)))
                 except:
                     pass
-                if column_letter in ['E','C','K']: max_length=2
-                if column_letter in ['I']: max_length=7
-                if column_letter in ['F','G']: max_length=14
-                if column_letter in ['B','G']: max_length=11
+                if column_letter in ['E', 'C', 'K']: max_length = 2
+                if column_letter in ['I']: max_length = 7
+                if column_letter in ['F', 'G']: max_length = 14
+                if column_letter in ['B', 'G']: max_length = 11
             adjusted_width = min(max_length + 4, 80)
             self.sheet.column_dimensions[column_letter].width = adjusted_width
-            
+
     def _auto_resize_rows(self):
         """Автоматически подбирает высоту строк для многострочного текста."""
         for row in self.sheet.iter_rows(min_row=2):
             max_lines = 1
             for cell in row:
                 if cell.value and isinstance(cell.value, str):
-                        lines = cell.value.count('\n') + 1
-                        max_lines = max(max_lines, lines)
+                    lines = cell.value.count('\n') + 1
+                    max_lines = max(max_lines, lines)
 
             self.sheet.row_dimensions[row[0].row].height = max(30, max_lines * 15)
 
-    
     def save(self, data_dict, sheet_name=None):
         if not data_dict:
-            raise ValueError("Передан пустой словарь данных")
-            
+            ValueError("Передан пустой словарь данных")
+            data_dict = {'Дсе_+_': {'Комментарий': 'Cnfkbycrfz cjhnbhjdrf'}}
+
         self._create_workbook(sheet_name)
-        
+
         if sheet_name:
             self.sheet.title = sheet_name
-            
+
         # Получаем все уникальные ключи из внутренних словарей для заголовков
-        # headers = ["Дсе","Уп","Имя изделия","Наименование","Рц","Рц из Сз","Дата из письма","Инф из письма","Подписано","Комментарии","№Жп","Дсе ЖП", "Дата создания",'Комментарий']
-        headers = ["Дсе","Наименование","РЦ (2012)","Имя изделия","УП","Дата из письма","Инф из письма","Подписано","РЦ (СЗ)","Комментарии","№ЖП", "Дата создания",'Комментарий']
+        headers = ["Дсе", "Наименование", "РЦ (2012)", "Имя изделия", "УП", "Дата из письма", "Инф из письма",
+                   "Подписано", "РЦ (СЗ)", "Комментарии", "№ЖП", "Дата создания", 'Комментарий','РЦ(ИНС)','ID тех.']
 
         # Добавляем колонку с именем теста/функции
         headers = headers
-        
+
         # Записываем заголовки
         for col_idx, header in enumerate(headers, 1):
             cell = self.sheet.cell(1, col_idx, header)
@@ -101,14 +100,14 @@ class ExcelSaver:
             cell.fill = self.header_fill
             cell.alignment = Alignment(horizontal="center", vertical="center")
             cell.border = self.border
-            
+
         # Записываем данные
         row_idx = 2
         name_idxs = 0
         last_name = "Дсе_+_"
         for name, inner_dict in data_dict.items():
             if last_name[:last_name.index("_+_")] != name[:name.index("_+_")]:
-                name_idxs+=1
+                name_idxs += 1
             for rc_s, row_from_rc in inner_dict.items():
                 for col_idx, header in enumerate(headers, 1):
                     if header == "Дсе":
@@ -126,27 +125,22 @@ class ExcelSaver:
                             cell.fill = PatternFill(start_color="f2f2f2", end_color="f2f2f2", fill_type="solid")
                         # if header in ['Дсе', 'input', 'output', 'expected']:
 
-                            # cell.font = self.code_font
-                            # cell.fill = self.code_fill
-                            # cell.border = self.border
+                        # cell.font = self.code_font
+                        # cell.fill = self.code_fill
+                        # cell.border = self.border
 
                 if not isinstance(row_from_rc, str):
                     row_idx += 1
             last_name = name
 
-            
         # Авторазмер колонок и строк
         self._auto_resize_columns()
         self._auto_resize_rows()
-        
+
         # Замораживаем заголовок
         self.sheet.freeze_panes = 'A2'
-        
+
         # Сохраняем
         output_path = f"{os.getcwd()}/{self.filename}"
         self.workbook.save(output_path)
         return output_path
-
-
-
-

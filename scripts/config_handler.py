@@ -11,6 +11,12 @@ class ConfigMainProgram:
         self.data_base.load()
         return self.data_base.data.get('program', '')
 
+    def set_config_progrm(self,key,data):
+        if key in self.data_base.data.get('program','').keys():
+            self.data_base.data['program'][key]=data
+            self.data_base.save()
+            self.data_base.load()
+
     def get_size_config(self):
         self.data_base.load()
         return self.data_base.data['program'].get('size', '')
@@ -41,6 +47,9 @@ class ConfigHistoryFile:
     def get_jp_hist(self):
         self.data_base.load()
         return self.data_base.data['history file'].get('jp', '')
+    def get_tool_hist(self):
+        self.data_base.load()
+        return self.data_base.data['history file'].get('tool', '')
 
     def set_history(self, key_name_file, path_to_file):
         data = self.data_base.data.get('history file', '')

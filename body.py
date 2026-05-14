@@ -3,10 +3,12 @@ from tkinter import filedialog, END, BooleanVar
 
 import customtkinter as ctk
 import pandas as pd
-
+import plyer
 from maneger_bam import LogicProgram as LogicManage_programm
 from scripts.config_handler import ConfigMainProgram, ConfigHistoryFile
 
+def send_notification(title, message, settime=15, file_path=""):
+    plyer.notification.notify(title=title, message=message, app_name="Bam Manager", timeout=settime)
 
 class AppGUI(ctk.CTk):
     def __init__(self):
@@ -73,7 +75,7 @@ class AppGUI(ctk.CTk):
         )
         self.batton_path_2012.place(x=465, y=5)
 
-        self.switch_up = ctk.CTkSwitch(
+        self.switch_yup = ctk.CTkSwitch(
             main_frame,
             text="Отображение УП",
             height=30,
@@ -81,10 +83,9 @@ class AppGUI(ctk.CTk):
             button_color=("green", "#565b5e"),
             progress_color=("#4a4a4a", "#242424"),
             button_hover_color=("#ffffff", "#242424"),
-            command=lambda : print("8908")
+            command= self.command_switch_yup
         )
-        print(self.var_view_yup.get())
-        self.switch_up.place(x=550, y=5)
+        self.switch_yup.place(x=550, y=5)
 
         label_sun.place(x=456, y=0)
         self.label_path_cz = ctk.CTkEntry(
@@ -125,6 +126,25 @@ class AppGUI(ctk.CTk):
         )
         self.batton_path_jp.place(x=465, y=75)
 
+        self.label_path_tool = ctk.CTkEntry(
+            main_frame,
+            placeholder_text="Ведите полный путь до файла t99l",
+            width=450,
+            height=30,
+            fg_color="#242424"
+        )
+        self.label_path_tool.place(x=5, y=110)
+        self.batton_path_tool = ctk.CTkButton(
+            main_frame,
+            text='Открыть',
+            width=30,
+            height=30,
+            fg_color="#4a4a4a",
+            hover_color="#242424",
+            command=lambda: self.button_path_commands("path_tool")
+        )
+        self.batton_path_tool.place(x=465, y=110)
+
         self.start_button = ctk.CTkButton(
             main_frame,
             text="Начать",
@@ -150,6 +170,15 @@ class AppGUI(ctk.CTk):
             self.label_path_jp.insert(0, self.config_history.get_jp_hist())
         else:
             self.log("--нет сохраненного пути к jp")
+        if self.config_history.get_tool_hist() != "":
+            self.label_path_tool.delete(0, END)
+            self.label_path_tool.insert(0, self.config_history.get_tool_hist())
+        else:
+            self.log("--нет сохраненного пути к tool")
+
+    def command_switch_yup(self):
+        self.log(f"--view_yup = {self.var_view_yup.get()} ")
+        self.main_config_program.set_config_progrm('view yup', self.var_view_yup.get())
 
     def log(self, message):
         """Вывод логов в текстовое поле GUI"""
@@ -203,30 +232,43 @@ class AppGUI(ctk.CTk):
             str_path = self.open_file_to_path()
             self.label_path_cz.delete(0, END)
             self.label_path_cz.insert(0, str_path)
+
+            self.config_history.set_history("cz", self.label_path_cz.get())
         if label_batton == 'path_jp':
             str_path = self.open_file_to_path()
             self.label_path_jp.delete(0, END)
             self.label_path_jp.insert(0, str_path)
 
-    def execute_logic(self):
-        try:
-            self.config_history.set_history("cz", self.label_path_cz.get())
             self.config_history.set_history("jp", self.label_path_jp.get())
+        if label_batton == 'path_tool':
+            str_path = self.open_file_to_path()
+            self.label_path_tool.delete(0, END)
+            self.label_path_tool.insert(0, str_path)
 
+            self.config_history.set_history("tool", self.label_path_tool.get())
+
+
+    def execute_logic(self):
+        # try:
             manager = LogicManage_programm(
                 list_path_to_file_rprd=self.label_path_2012.get().replace(", ", ",").split(","),
+                need_yup=self.var_view_yup.get(),
                 path_to_file_cz=self.label_path_cz.get(),
-                path_to_file_jp=self.label_path_jp.get()
+                path_to_file_jp=self.label_path_jp.get(),
+                path_to_file_tool=self.label_path_tool.get()
             )
 
             if hasattr(manager, 'main'):
                 manager.main()
 
+            self.log("Complete!")
             self.log("Процесс успешно завершен.")
-        except Exception as e:
-            self.log(f"ОШИБКА: {str(e)}")
-        finally:
+            send_notification("Программа завершена", "Программа завершена, проверте файл", 16)
             self.start_button.configure(state="normal")
+        # except Exception as e:
+        #     self.log(f"ERROR: {str(e)}")
+        # finally:
+        #     self.start_button.configure(state="normal")
 
 
 if __name__ == "__main__":

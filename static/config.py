@@ -6,10 +6,12 @@ configProgram = {
             'y':'400'
         },
         'theme':'system',
-        'view yup':True
+        'view yup':True,
+        'view yuep':True
     },
     'history file':{
         'cz':'',
+        'tool':'',
         'jp':''
     }
 }

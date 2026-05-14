@@ -39,13 +39,67 @@ class HandlerConfig:
         except (json.JSONDecodeError, FileNotFoundError) :
             print("Config файл пуст")
 
-    def recoveryLoseKeyAndValue(self, dictionary: str, key_for_dictionary: str, value_for_key: str):
-        print("Recovery:", dictionary, key_for_dictionary, value_for_key)
+    def recoveryLoseKeyAndValue(self):
+        """
+        Восстанавливает отсутствующие ключи и значения из шаблона configProgram.
+        Сравнивает текущие данные с шаблоном и добавляет недостающие элементы.
+        """
 
+        def _merge_missing(current, template, path=""):
+            """
+            Рекурсивно сравнивает текущие данные с шаблоном и добавляет недостающее.
+            """
+            changes_made = False
 
-        if dictionary not in self.data:
-            self.data[dictionary] = {}
+            if isinstance(template, dict):
+                if not isinstance(current, dict):
+                    # Если текущее значение не словарь, заменяем его полностью
+                    print(f"Recovery: replacing non-dict at '{path}' with template dict")
+                    return template, True
 
-        self.data[dictionary][key_for_dictionary] = value_for_key
-        self.save()
+                for key, template_value in template.items():
+                    current_path = f"{path}.{key}" if path else key
+
+                    if key not in current:
+                        # Ключ отсутствует — добавляем из шаблона
+                        print(f"Recovery: missing key '{current_path}' added")
+                        current[key] = template_value
+                        changes_made = True
+                    else:
+                        # Ключ есть — рекурсивно проверяем вложенные структуры
+                        if isinstance(template_value, (dict, list)):
+                            new_value, nested_changed = _merge_missing(
+                                current[key], template_value, current_path
+                            )
+                            if nested_changed:
+                                current[key] = new_value
+                                changes_made = True
+                        # Если значение примитивное и отличается от шаблона —
+                        # оставляем текущее (пользовательское значение)
+
+            elif isinstance(template, list):
+                if not isinstance(current, list):
+                    print(f"Recovery: replacing non-list at '{path}' with template list")
+                    return template, True
+
+                # Для списков: если текущий пуст, а шаблон нет — копируем шаблон
+                if len(current) == 0 and len(template) > 0:
+                    print(f"Recovery: empty list at '{path}' filled from template")
+                    return template, True
+
+            return current, changes_made
+
+        # Создаём копию текущих данных для сравнения
+        original_data = json.dumps(self.data, sort_keys=True)
+
+        # Запускаем восстановление
+        self.data, was_changed = _merge_missing(self.data, configProgram.copy())
+
+        # Проверяем, были ли изменения
+        new_data = json.dumps(self.data, sort_keys=True)
+        if new_data != original_data:
+            print("Recovery: changes detected, saving...")
+            self.save()
+
+        return was_changed
 

@@ -2,6 +2,7 @@ import os.path
 
 from scripts.handling_cz import CzHandlingScript
 from scripts.handling_jp import JpHandlingScript
+from scripts.handling_tool import ToolHandlingScript
 from scripts.handling_rprd import RprdHandlingScript
 from scripts.write_excel_file import ExcelSaver
 from scripts.filter_data import FiltretedData
@@ -9,17 +10,19 @@ from CTkMessagebox import CTkMessagebox
 
 
 class LogicProgram:
-    def __init__(self, list_path_to_file_rprd: list, path_to_file_cz: str = None, path_to_file_jp: str = None):
+    def __init__(self, list_path_to_file_rprd: list, need_yup: bool, path_to_file_cz: str = None, path_to_file_jp: str = None, path_to_file_tool: str = None):
         """
         Основная логика программы
         :param list_path_to_file_rprd: Список полных ссылок, файлов 2012
         :param path_to_file_cz: Полный путь до файла сз
         :param path_to_file_jp: Полный путь до файла журнала проблем
         """
-        print([list_path_to_file_rprd,path_to_file_cz,path_to_file_jp])
+        self.need_yup = need_yup
+
         self.list_path_file = list_path_to_file_rprd
         self.path_to_file_cz = path_to_file_cz
         self.path_to_file_jp = path_to_file_jp
+        self.path_to_file_tool = path_to_file_tool
 
         if not self.path_to_file_cz is None and not self.path_to_file_cz == "":
             cz_handling = CzHandlingScript(self.path_to_file_cz)
@@ -29,6 +32,11 @@ class LogicProgram:
             jp_handling = JpHandlingScript(self.path_to_file_jp)
             self.data_jp = jp_handling.main()
             self.list_keys_data_jp = list(self.data_jp.keys())
+        if not self.path_to_file_tool is None and not self.path_to_file_tool == "":
+            tool_handling = ToolHandlingScript(self.path_to_file_tool)
+            self.data_tool= tool_handling.main()
+            self.list_keys_data_tool = list(self.data_tool.keys())
+
 
     def main(self):
         save_excel = ExcelSaver('result_data.xlsx')
@@ -43,16 +51,27 @@ class LogicProgram:
                     if num_row_dse in self.list_keys_data_cz:
                         for key_cz in list(self.data_cz[num_row_dse].keys()):
                             rprd_data[num_row_dse][key_cz] = self.data_cz[num_row_dse].get(key_cz, "")
+
             if not self.path_to_file_jp is None and not self.path_to_file_jp == "":
                 for num_row_dse, row in rprd_data.items():
                     if num_row_dse in self.list_keys_data_jp:
                         for key_jp in list(self.data_jp[num_row_dse].keys()):
                             rprd_data[num_row_dse][key_jp] = self.data_jp[num_row_dse].get(key_jp, "")
+            if not self.path_to_file_tool is None and not self.path_to_file_tool == "":
+                for num_row_dse, row in rprd_data.items():
+                    if num_row_dse in self.list_keys_data_tool:
+                        for key_tool in list(self.data_tool[num_row_dse].keys()):
+                            rprd_data[num_row_dse][key_tool] = self.data_tool[num_row_dse].get(key_tool, "")
+
 
 
             flter = FiltretedData(rprd_data)
-            main_data = flter.main()
-            bas_name_file = f"{os.path.basename(file_path)}"[f"{os.path.basename(file_path)}".index("rprd00067mod ")+13:]
+            main_data = flter.main(self.need_yup)
+            try:
+                bas_name_file = f"{os.path.basename(file_path)}"[
+                                f"{os.path.basename(file_path)}".index("rprd00067mod ") + 13:]
+            except:
+                bas_name_file = f"{os.path.basename(file_path)}"
             if len(bas_name_file)>30:
                 sheet_n = bas_name_file[-30:]
                 sheet_n = sheet_n[sheet_n.index(" "):]

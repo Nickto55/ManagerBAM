@@ -3,6 +3,7 @@ import os.path
 import pandas as pd
 
 from scripts.read_excel_file import ReadExcelFile
+from scripts.config_handler import ConfigMainProgram
 
 
 class RprdHandlingScript:
@@ -24,11 +25,13 @@ class RprdHandlingScript:
             }
         :param path_to_file прямой путь до файла:
         """
+
         self.file_path = path_to_file
 
         self.data_for_read = {}
         self.data = {}
         self.sorted_data = {}
+        self.config_porog = ConfigMainProgram()
 
         self.name_file = ""
 
@@ -134,10 +137,8 @@ class RprdHandlingScript:
         first_line = self.data_for_read.get(0, "")
         list_keys_first_line = list(first_line.keys())
         if str(list_keys_first_line) == "['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', ' Отчет по наличию программ для станков с ЧПУ', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', '2012', 'Unnamed: 10']":
-            print(f"version complete | {os.path.basename(file_path)}")
             return 'version complete'
         if int(list_keys_first_line[0]) == 1:
-            print(f"version half     | {os.path.basename(file_path)}")
             return 'version half'
         return None
 

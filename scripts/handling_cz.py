@@ -7,6 +7,7 @@ from scripts.read_excel_file import ReadExcelFile
 
 class CzHandlingScript:
     def __init__(self, path_file: str):
+
         self.path_file = path_file
         self.name_file = os.path.basename(path_file)
         self.sorted_data_cz = {}
@@ -15,7 +16,6 @@ class CzHandlingScript:
         read_excel = ReadExcelFile()
         self.data_for_read = read_excel.read_excel_to_dict(self.path_file)
         self.sorting_completed_data()
-
         return self.sorted_data_cz
 
     def sorting_completed_data(self):
@@ -46,7 +46,7 @@ class CzHandlingScript:
                     'coment': str(coment)
                 }
                 if not dse in list(dse_data_cz.keys()): dse_data_cz[dse] = {"data_cz": {}}
-                dse_data_cz[dse]["data_cz"][rc_cell] = rc_data
+                dse_data_cz[dse]["data_cz"][f"{rc_cell}_+_{signed}_++_{date_latter}"] = rc_data
 
         self.sorted_data_cz = dse_data_cz.copy()
 
