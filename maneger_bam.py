@@ -81,6 +81,7 @@ class LogicProgram:
             path = save_excel.save(main_data, sheet_name=sheet_n)
             print(f" Файл сохранен: {path}")
             print(f'Всего записей:{len(list(main_data.keys()))}')
+            return path
 
 
 

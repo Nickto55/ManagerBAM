@@ -101,6 +101,11 @@ class ExcelSaver:
             cell.alignment = Alignment(horizontal="center", vertical="center")
             cell.border = self.border
 
+        last_col_letter = get_column_letter(len(headers))
+
+        # Устанавливаем фильтр от первой ячейки (А1) до последней колонки первой строки
+        self.sheet.auto_filter.ref = f"A1:{last_col_letter}1"
+
         # Записываем данные
         row_idx = 2
         name_idxs = 0

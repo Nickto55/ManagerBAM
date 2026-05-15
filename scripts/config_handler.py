@@ -27,7 +27,6 @@ class ConfigMainProgram:
             self.data_base.data['program']["size"][key_name_file] = path_to_file
             self.data_base.save()
             self.data_base.load()
-            print(f"Размер для '{key_name_file}' сохранен в 'program/size': {path_to_file}")
         else:
             print(
                 f"Данного ключа('{key_name_file}') нет в словаре 'size', возможные варианты {list(data.keys())}")
@@ -40,6 +39,9 @@ class ConfigHistoryFile:
     def __init__(self):
         self.data_base = HandlerConfig()
 
+    def get_2012_hist(self):
+        self.data_base.load()
+        return self.data_base.data['history file'].get('2012', '')
     def get_cz_hist(self):
         self.data_base.load()
         return self.data_base.data['history file'].get('cz', '')

@@ -10,6 +10,7 @@ configProgram = {
         'view yuep':True
     },
     'history file':{
+        '2012':'',
         'cz':'',
         'tool':'',
         'jp':''
